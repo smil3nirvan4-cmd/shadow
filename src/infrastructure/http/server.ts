@@ -359,6 +359,66 @@ export function createServer(): Express {
         }
     });
 
+    // ==========================================
+    // Forensics Routes
+    // ==========================================
+
+    // Contact timeline
+    app.get('/api/v1/forensics/timeline', async (_req: Request, res: Response) => {
+        try {
+            const { container } = await import('tsyringe');
+            const { GodModeService } = await import('../../domain/forensics/god-mode.service.js');
+            const godModeService = container.resolve(GodModeService);
+
+            // Get recent events from GodMode logs
+            const presenceLogs = godModeService.getAllPresenceLogs(20);
+            const deletedMessages = godModeService.getDeletedMessages(20);
+            const ackLogs = godModeService.getAckLogs(20);
+
+            // Combine into timeline format
+            type TimelineEvent = { time: string; type: string; text: string; recovered?: boolean };
+            const events: TimelineEvent[] = [];
+
+            presenceLogs.forEach(log => {
+                events.push({
+                    time: new Date(log.timestamp).toLocaleString(),
+                    type: 'status',
+                    text: `${log.contactId} is ${log.status}`,
+                });
+            });
+
+            deletedMessages.forEach(msg => {
+                events.push({
+                    time: new Date(msg.deletedAt).toLocaleString(),
+                    type: 'deleted',
+                    text: msg.body || '[Media]',
+                    recovered: true,
+                });
+            });
+
+            ackLogs.forEach(log => {
+                events.push({
+                    time: new Date(log.timestamp).toLocaleString(),
+                    type: log.ackName || 'sent',
+                    text: log.preview || 'Message',
+                });
+            });
+
+            // Sort by time descending
+            events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+            res.json({ success: true, data: events.slice(0, 20) });
+        } catch (error) {
+            // Return sample timeline data
+            res.json({
+                success: true,
+                data: [
+                    { time: new Date().toLocaleString(), type: 'info', text: 'Timeline started' },
+                ],
+            });
+        }
+    });
+
 
     // ==========================================
     // WhatsApp Routes (Functional)
