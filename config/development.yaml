@@ -1,0 +1,16 @@
+# JARVIS ULTIMATE - Development Configuration
+
+app:
+  logLevel: debug
+
+whatsapp:
+  puppeteer:
+    headless: false  # Show browser in development
+
+ai:
+  cache:
+    enabled: false  # Disable cache for testing
+
+security:
+  rateLimit:
+    maxRequests: 1000  # Higher limit for dev

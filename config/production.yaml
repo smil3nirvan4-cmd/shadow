@@ -1,0 +1,26 @@
+# JARVIS ULTIMATE - Production Configuration
+
+app:
+  logLevel: info
+
+whatsapp:
+  puppeteer:
+    headless: true
+    args:
+      - --no-sandbox
+      - --disable-setuid-sandbox
+      - --disable-dev-shm-usage
+
+ai:
+  cache:
+    enabled: true
+    ttlSeconds: 7200  # 2 hours in production
+
+analytics:
+  retentionDays: 90
+  maxLogsInMemory: 5000
+
+security:
+  rateLimit:
+    windowMs: 60000
+    maxRequests: 60  # Stricter in production

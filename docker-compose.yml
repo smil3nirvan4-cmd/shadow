@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  jarvis:
+    build:
+      context: .
+      target: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./.wwebjs_auth:/app/.wwebjs_auth
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - AUTHORIZED_NUMBERS=${AUTHORIZED_NUMBERS}
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development mode (alternative)
+  jarvis-dev:
+    build:
+      context: .
+      target: builder
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - AUTHORIZED_NUMBERS=${AUTHORIZED_NUMBERS}
+    command: npm run dev
+    profiles:
+      - dev
+
+  # Optional monitoring stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    profiles:
+      - monitoring
+
+volumes:
+  grafana-data:

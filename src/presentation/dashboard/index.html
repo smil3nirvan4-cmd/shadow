@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS ULTIMATE | C2 Dashboard</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+
+  <!-- Favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header__brand">
+        <div class="header__logo">⚡</div>
+        <span class="header__title">JARVIS <span>ULTIMATE</span></span>
+        <span class="header__version">v7.5.0</span>
+      </div>
+      <div class="header__actions">
+        <span class="header__clock" id="clock">00:00:00</span>
+        <div class="header__status online" id="status">
+          <span class="status-dot"></span>
+          <span id="status-text">Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <nav>
+        <ul class="sidebar__nav" id="nav">
+          <li class="sidebar__item active" data-page="overview">
+            <span class="sidebar__item-icon">🚀</span>
+            <span class="sidebar__item-text">Overview</span>
+          </li>
+          <li class="sidebar__item" data-page="dashboard">
+            <span class="sidebar__item-icon">📊</span>
+            <span class="sidebar__item-text">Dashboard</span>
+          </li>
+          <li class="sidebar__item" data-page="godmode">
+            <span class="sidebar__item-icon">🥷</span>
+            <span class="sidebar__item-text">God Mode</span>
+          </li>
+          <li class="sidebar__item" data-page="behavioral">
+            <span class="sidebar__item-icon">📈</span>
+            <span class="sidebar__item-text">Behavioral</span>
+          </li>
+          <li class="sidebar__item" data-page="forensicsEnhanced">
+            <span class="sidebar__item-icon">🔍</span>
+            <span class="sidebar__item-text">Forensics</span>
+          </li>
+          <li class="sidebar__item" data-page="forensics">
+            <span class="sidebar__item-icon">⚙️</span>
+            <span class="sidebar__item-text">God Control</span>
+          </li>
+          <li class="sidebar__item" data-page="analytics">
+            <span class="sidebar__item-icon">📉</span>
+            <span class="sidebar__item-text">Analytics</span>
+          </li>
+          <li class="sidebar__item" data-page="medialab">
+            <span class="sidebar__item-icon">📸</span>
+            <span class="sidebar__item-text">Media Lab</span>
+          </li>
+          <li class="sidebar__item" data-page="whatsapp">
+            <span class="sidebar__item-icon">📱</span>
+            <span class="sidebar__item-text">WhatsApp</span>
+          </li>
+          <li class="sidebar__item" data-page="contacts">
+            <span class="sidebar__item-icon">👥</span>
+            <span class="sidebar__item-text">Contacts</span>
+          </li>
+          <li class="sidebar__item" data-page="commands">
+            <span class="sidebar__item-icon">⌨️</span>
+            <span class="sidebar__item-text">Commands</span>
+          </li>
+          <li class="sidebar__item" data-page="protocol">
+            <span class="sidebar__item-icon">🔬</span>
+            <span class="sidebar__item-text">Protocol</span>
+          </li>
+          <li class="sidebar__item" data-page="settings">
+            <span class="sidebar__item-icon">⚙️</span>
+            <span class="sidebar__item-text">Settings</span>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main" id="main-content">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </main>
+
+    <!-- Terminal -->
+    <div class="terminal" id="terminal">
+      <div class="terminal__header" onclick="toggleTerminal()">
+        <span class="terminal__title">🖥️ Terminal</span>
+        <span class="terminal__toggle">▼</span>
+      </div>
+      <div class="terminal__content" id="terminal-content">
+        <!-- Logs injected by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="scripts/app.js"></script>
+</body>
+
+</html>

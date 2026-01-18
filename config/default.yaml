@@ -1,0 +1,53 @@
+# JARVIS ULTIMATE - Default Configuration
+# This file contains default values that can be overridden by environment-specific configs
+
+app:
+  name: jarvis-ultimate
+  port: 3000
+  logLevel: info
+
+whatsapp:
+  sessionPath: ./.wwebjs_auth
+  puppeteer:
+    headless: true
+    args:
+      - --no-sandbox
+      - --disable-setuid-sandbox
+      - --disable-dev-shm-usage
+      - --disable-accelerated-2d-canvas
+      - --no-first-run
+      - --disable-gpu
+
+ai:
+  provider: gemini
+  model: gemini-2.0-flash
+  maxTokens: 8192
+  temperature: 0.7
+  cache:
+    enabled: true
+    ttlSeconds: 3600
+
+storage:
+  type: sqlite
+  path: ./data
+  sqlite:
+    filename: brain.db
+
+analytics:
+  retentionDays: 30
+  maxLogsInMemory: 1000
+  anomalyThreshold: 0.8
+
+forensics:
+  enableCallInterception: true
+  enablePresenceTracking: true
+  enableAckTracking: true
+  enableDeviceFingerprinting: true
+
+security:
+  rateLimit:
+    windowMs: 60000
+    maxRequests: 100
+  cors:
+    origins:
+      - http://localhost:3000
