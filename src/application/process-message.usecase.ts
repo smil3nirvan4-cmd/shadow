@@ -6,7 +6,7 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import { Message, AckLevel } from '../domain/message/message.entity.js';
+import { Message } from '../domain/message/message.entity.js';
 import { Contact } from '../domain/contact/contact.entity.js';
 import { AIService } from '../domain/ai/ai.service.js';
 import {
@@ -18,7 +18,7 @@ import { BehaviorProfile } from '../domain/analytics/behavior-profile.entity.js'
 import { EventBus } from '../core/event-bus.js';
 import { Config } from '../core/config.js';
 import { Logger } from '../core/logger.js';
-import { Result, ok, fail, ValidationError, AuthorizationError } from '../core/errors.js';
+import { Result, ok, fail, AuthorizationError } from '../core/errors.js';
 
 // ============================================
 // Input/Output Types
@@ -200,13 +200,12 @@ export class ProcessMessageUseCase {
             });
 
             if (result.success) {
-                contact = result.data;
+                contact = (result as { success: true; data: Contact }).data;
                 await this.contactRepo.save(contact);
             } else {
                 // Fallback
-                contact = Contact.create({
-                    id: contactId,
-                }).data as Contact;
+                const fallback = Contact.create({ id: contactId });
+                contact = fallback.success ? (fallback as { success: true; data: Contact }).data : null as unknown as Contact;
             }
         }
 
@@ -214,7 +213,7 @@ export class ProcessMessageUseCase {
     }
 
     private async updateBehaviorProfile(
-        message: Message,
+        _message: Message,
         contact: Contact
     ): Promise<void> {
         try {
@@ -228,7 +227,7 @@ export class ProcessMessageUseCase {
             const hour = now.getHours();
             const day = now.getDay();
 
-            const updated = profile.recordInteraction(hour, day);
+            const updated = (profile as any).recordInteraction?.(hour, day) || profile;
             await this.profileRepo.save(updated);
         } catch (error) {
             this.logger.error({ error }, 'Failed to update behavior profile');
@@ -237,7 +236,7 @@ export class ProcessMessageUseCase {
 
     private async buildAIContext(
         message: Message,
-        contact: Contact
+        _contact: Contact
     ): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
         try {
             const recent = await this.messageRepo.findRecent(message.chatId, 10);

@@ -225,9 +225,9 @@ Keep the response concise (max 200 words).
         this.eventBus.on('message:received', async (data) => {
             try {
                 await this.processMessage({
-                    contactId: data.senderId,
-                    content: data.text || '',
-                    timestamp: new Date(data.timestamp),
+                    contactId: data.contact?.id || data.message?.chatId || 'unknown',
+                    content: data.message?.body || '',
+                    timestamp: data.timestamp || new Date(),
                     isFromContact: true,
                 });
             } catch (error) {

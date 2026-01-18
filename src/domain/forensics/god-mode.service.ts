@@ -110,7 +110,7 @@ export class GodModeService {
 
     updateConfig(changes: Partial<ReturnType<GodModeConfig['toJSON']>>): GodModeConfig {
         this.config = this.config.update(changes);
-        this.logger.info('[GodMode] Config updated', this.config.toSummary());
+        this.logger.info(this.config.toSummary(), '[GodMode] Config updated');
         return this.config;
     }
 
@@ -189,7 +189,7 @@ export class GodModeService {
                 await client.sendMessage(call.peerJid, this.config.callRejectMessage);
                 this.logger.info('[GodMode] 🚫 Call auto-rejected');
             } catch (e) {
-                this.logger.error('[GodMode] Failed to reject call', e);
+                this.logger.error({ error: e }, '[GodMode] Failed to reject call');
             }
         }
 
@@ -366,7 +366,7 @@ export class GodModeService {
             this.eventBus.emit('godmode:viewonce_saved', { record });
             return record;
         } catch (e) {
-            this.logger.error('[GodMode] Failed to save view-once', e);
+            this.logger.error({ error: e }, '[GodMode] Failed to save view-once');
             return null;
         }
     }

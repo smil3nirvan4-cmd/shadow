@@ -130,36 +130,36 @@ export class ForensicsEventLogger {
             this.logMessage(data, 'outgoing');
         });
 
-        // Presence events
-        this.eventBus.on('presence:update', (data) => {
+        // Presence events (cast to any as these are custom events)
+        (this.eventBus as any).on('presence:update', (data: any) => {
             this.logPresence(data);
         });
 
-        // Call events
-        this.eventBus.on('call:offer', (data) => {
+        // Call events (cast to any as these are custom events)  
+        (this.eventBus as any).on('call:offer', (data: any) => {
             this.logCall(data, 'offer');
         });
 
-        this.eventBus.on('call:answer', (data) => {
+        (this.eventBus as any).on('call:answer', (data: any) => {
             this.logCall(data, 'answer');
         });
 
-        this.eventBus.on('call:terminate', (data) => {
+        (this.eventBus as any).on('call:terminate', (data: any) => {
             this.logCall(data, 'terminate');
         });
 
         // Ack events
         this.eventBus.on('message:ack', (data) => {
-            this.logAck(data);
+            this.logAck(data as any);
         });
 
-        // History sync
-        this.eventBus.on('history:sync', (data) => {
+        // History sync (cast to any as this is a custom event)
+        (this.eventBus as any).on('history:sync', (data: any) => {
             this.logHistorySync(data);
         });
 
-        // ViewOnce events
-        this.eventBus.on('message:viewonce', (data) => {
+        // ViewOnce events (cast to any as this is a custom event)
+        (this.eventBus as any).on('message:viewonce', (data: any) => {
             this.logViewOnce(data);
         });
     }

@@ -1,0 +1,3 @@
+﻿src/domain/ai/ai.service.ts(136,13): error TS2322: Type 'DomainError' is not assignable to type 'AIProviderError'.
+  Types of property 'code' are incompatible.
+    Type 'string' is not assignable to type '"AI_PROVIDER_ERROR"'.

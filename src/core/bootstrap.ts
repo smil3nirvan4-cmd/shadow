@@ -7,7 +7,7 @@
 
 import 'reflect-metadata';
 import { container, DependencyContainer } from 'tsyringe';
-import { configManager, Config, getConfig } from './config.js';
+import { configManager, Config } from './config.js';
 import { EventBus } from './event-bus.js';
 import { createLogger, Logger } from './logger.js';
 

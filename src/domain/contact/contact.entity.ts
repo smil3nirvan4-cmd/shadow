@@ -58,7 +58,7 @@ export class Contact {
 
     static fromRaw(rawContact: Record<string, unknown>): Result<Contact> {
         const props = {
-            id: rawContact.id?.['_serialized'] || rawContact.id,
+            id: (rawContact.id as Record<string, unknown>)?.['_serialized'] as string || rawContact.id as string,
             name: rawContact.name,
             pushName: rawContact.pushname || rawContact.pushName,
             shortName: rawContact.shortName,

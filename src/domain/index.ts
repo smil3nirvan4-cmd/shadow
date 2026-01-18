@@ -24,5 +24,15 @@ export * from './writing/index.js';
 export * from './ai/ai.types.js';
 export * from './ai/ai.service.js';
 
-// Shared
-export * from './shared/repository.interface.js';
+// Shared (excluding AckLog which is already exported from forensics)
+export {
+    FindOptions,
+    Repository,
+    MessageStats,
+    MessageRepository,
+    ContactRepository,
+    CallRepository,
+    PresenceRepository,
+    BehaviorProfileRepository,
+    AckLogRepository,
+} from './shared/repository.interface.js';

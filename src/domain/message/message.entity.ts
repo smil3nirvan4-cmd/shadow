@@ -87,7 +87,7 @@ export class Message {
     static fromRaw(rawMessage: Record<string, unknown>): Result<Message> {
         // Transform raw WhatsApp message to our format
         const props = {
-            id: rawMessage.id?.['_serialized'] || rawMessage.id,
+            id: (rawMessage.id as Record<string, unknown>)?.['_serialized'] as string || rawMessage.id as string,
             chatId: rawMessage.from || rawMessage.chatId,
             fromMe: rawMessage.fromMe ?? false,
             sender: rawMessage.author || rawMessage.from,
@@ -97,7 +97,7 @@ export class Message {
                 ? new Date((rawMessage.timestamp as number) * 1000)
                 : new Date(),
             ack: rawMessage.ack || AckLevel.PENDING,
-            quotedMessageId: (rawMessage.quotedMsg as Record<string, unknown>)?.id?.['_serialized'],
+            quotedMessageId: ((rawMessage.quotedMsg as Record<string, unknown>)?.id as Record<string, unknown>)?.['_serialized'] as string | undefined,
             mediaUrl: rawMessage.mediaUrl as string | undefined,
             mimetype: rawMessage.mimetype as string | undefined,
             filename: rawMessage.filename as string | undefined,

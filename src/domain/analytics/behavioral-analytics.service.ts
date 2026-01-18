@@ -8,7 +8,7 @@
 import { injectable } from 'tsyringe';
 import { EventBus } from '../../core/event-bus.js';
 import { Logger } from '../../core/logger.js';
-import { BehaviorProfile, ContactPrediction, BehaviorAnomaly } from './behavior-profile.entity.js';
+import { BehaviorProfile, BehaviorAnomaly } from './behavior-profile.entity.js';
 
 // ============================================
 // Types
@@ -107,11 +107,12 @@ export class BehavioralAnalyticsService {
             });
         }
 
-        this.logger.debug(`[Analytics] Recorded message for ${contactId}`, {
+        this.logger.debug({
+            contactId,
             fromMe,
             ghostingScore: profile.ghostingScore,
             interestLevel: profile.interestLevel,
-        });
+        }, `[Analytics] Recorded message for ${contactId}`);
 
         return profile;
     }

@@ -553,7 +553,7 @@ export function createServer(): Express {
             const { WhatsAppClient } = await import('../whatsapp/client.js');
             const client = container.resolve(WhatsAppClient);
 
-            const info = await client.getContactInfo(req.params.contactId);
+            const info = await client.getContactInfo(req.params.contactId as string);
 
             if (info) {
                 res.json({ success: true, data: info });
@@ -606,7 +606,7 @@ export function createServer(): Express {
             const client = container.resolve(WhatsAppClient);
 
             const limit = parseInt(req.query.limit as string) || 50;
-            const messages = await client.getMessagesFromChat(req.params.chatId, limit);
+            const messages = await client.getMessagesFromChat(req.params.chatId as string, limit);
 
             const simplified = (messages as Array<{ id: { _serialized: string }; body: string; fromMe: boolean; timestamp: number; type: string }>).map(m => ({
                 id: m.id._serialized,
@@ -671,7 +671,7 @@ export function createServer(): Express {
             const { WhatsAppClient } = await import('../whatsapp/client.js');
             const client = container.resolve(WhatsAppClient);
 
-            const success = await client.markAsRead(req.params.chatId);
+            const success = await client.markAsRead(req.params.chatId as string);
 
             res.json({ success: true, data: { marked: success } });
         } catch (error) {
@@ -725,7 +725,7 @@ export function createServer(): Express {
 
     // Presence logs
     app.get('/api/v1/forensics/presence', async (req: Request, res: Response) => {
-        const limit = parseInt(req.query.limit as string) || 100;
+        const _limit = parseInt(req.query.limit as string) || 100;
         res.json({
             success: true,
             data: [], // Would come from ForensicsEventLogger.getPresenceLogs(limit)
@@ -734,7 +734,7 @@ export function createServer(): Express {
 
     // Call logs with metadata
     app.get('/api/v1/forensics/calls', async (req: Request, res: Response) => {
-        const limit = parseInt(req.query.limit as string) || 100;
+        const _limit = parseInt(req.query.limit as string) || 100;
         res.json({
             success: true,
             data: [], // Would come from VoIPAnalyzer.getCompletedCalls(limit)
@@ -748,7 +748,7 @@ export function createServer(): Express {
 
     // Ack tracking
     app.get('/api/v1/forensics/acks', async (req: Request, res: Response) => {
-        const limit = parseInt(req.query.limit as string) || 100;
+        const _limit = parseInt(req.query.limit as string) || 100;
         res.json({
             success: true,
             data: [], // Would come from ForensicsEventLogger.getAckLogs(limit)

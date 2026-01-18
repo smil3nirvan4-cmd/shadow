@@ -173,7 +173,7 @@ export class ForensicsEnhancedService {
             metadata: { duration: enhanced.duration },
         });
 
-        this.logger.debug(`[Forensics] 📞 Enhanced call from ${contactId}`, enhanced);
+        this.logger.debug(enhanced, `[Forensics] 📞 Enhanced call from ${contactId}`);
         return enhanced;
     }
 

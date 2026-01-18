@@ -133,7 +133,7 @@ export class AIService {
                 return result;
             }
 
-            lastError = result.error;
+            lastError = result.error as AIProviderError;
             this.logger.warn(
                 { attempt, maxRetries, error: result.error.message },
                 'AI generation failed, retrying'

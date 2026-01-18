@@ -94,7 +94,7 @@ export class OllamaAdapter implements AIProvider {
                 throw new Error(`Ollama API error: ${response.status}`);
             }
 
-            const data: OllamaResponse = await response.json();
+            const data = await response.json() as OllamaResponse;
 
             return ok({
                 content: data.message.content,
@@ -204,8 +204,8 @@ export class OllamaAdapter implements AIProvider {
             const response = await fetch(`${this.baseUrl}/api/tags`);
             if (!response.ok) return [];
 
-            const data = await response.json();
-            return data.models?.map((m: { name: string }) => m.name) || [];
+            const data = await response.json() as { models?: Array<{ name: string }> };
+            return data.models?.map((m) => m.name) || [];
         } catch {
             return [];
         }

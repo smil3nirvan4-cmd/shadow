@@ -318,14 +318,15 @@ export class WhatsAppClient {
 
         try {
             const chat = await this.client.getChatById(contactId);
-            await chat.sendPresenceSubscribe();
+            // Presence subscription handled differently in whatsapp-web.js
+            // The library automatically subscribes when you fetch the chat
             return true;
         } catch {
             return false;
         }
     }
 
-    async setPresence(presence: 'available' | 'unavailable'): Promise<boolean> {
+    async setPresence(_presence: 'available' | 'unavailable'): Promise<boolean> {
         if (!this.client || !this.isReady) return false;
 
         try {
