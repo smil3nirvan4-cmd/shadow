@@ -107,6 +107,25 @@ export async function bootstrap(
         logger.warn({ error }, 'Failed to initialize storage, using in-memory fallback');
     }
 
+    // Register domain services
+    try {
+        const { GodModeService } = await import('../domain/forensics/god-mode.service.js');
+        const { BehavioralAnalyticsService } = await import('../domain/analytics/behavioral-analytics.service.js');
+
+        // Create and register service instances
+        const godModeService = new GodModeService(eventBus, logger);
+        const analyticsService = new BehavioralAnalyticsService(eventBus, logger);
+
+        container.registerInstance(GodModeService, godModeService);
+        container.registerInstance(BehavioralAnalyticsService, analyticsService);
+        container.registerInstance('GodModeService', godModeService);
+        container.registerInstance('BehavioralAnalyticsService', analyticsService);
+
+        logger.info('Domain services registered (GodMode, Analytics)');
+    } catch (error) {
+        logger.warn({ error }, 'Failed to initialize domain services');
+    }
+
     // Mark as bootstrapped
     isBootstrapped = true;
 

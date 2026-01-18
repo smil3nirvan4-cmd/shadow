@@ -26,12 +26,25 @@ class APIClient {
       });
       const data = await response.json();
       if (!response.ok || !data.success) {
+        console.error(`[API Error] ${endpoint}:`, data.error?.message || 'Request failed');
+        // Return mock data only if API returns error, but log it
+        const mockData = this.getMockData(endpoint);
+        if (mockData) {
+          console.warn(`[API] Using fallback data for ${endpoint}`);
+          return mockData;
+        }
         throw new Error(data.error?.message || 'Request failed');
       }
       return data.data;
     } catch (error) {
-      // Return mock data for demo
-      return this.getMockData(endpoint);
+      console.error(`[API Error] ${endpoint}:`, error.message);
+      // Return mock data for demo with warning
+      const mockData = this.getMockData(endpoint);
+      if (mockData) {
+        console.warn(`[API] Using fallback data for ${endpoint} due to:`, error.message);
+        return mockData;
+      }
+      throw error;
     }
   }
 
