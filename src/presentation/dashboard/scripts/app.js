@@ -1792,7 +1792,7 @@ async function connectWhatsApp() {
       if (status.connected) {
         clearInterval(pollInterval);
         addConnectionLog('✅ WhatsApp conectado com sucesso!', 'success');
-        setTimeout(() => app.loadPage('whatsapp'), 1000);
+        setTimeout(() => app.navigate('whatsapp'), 1000);
       }
     }, 2000);
 
@@ -1809,7 +1809,7 @@ async function disconnectWhatsApp() {
   try {
     await api.disconnectWhatsApp();
     addConnectionLog('WhatsApp desconectado.', 'success');
-    setTimeout(() => app.loadPage('whatsapp'), 1000);
+    setTimeout(() => app.navigate('whatsapp'), 1000);
   } catch (error) {
     addConnectionLog(`Erro ao desconectar: ${error.message}`, 'error');
   }
@@ -1868,7 +1868,7 @@ async function startForensicsCapture() {
   try {
     await api.toggleForensicsCapture('start');
     app.log('Forensics capture started', 'success');
-    app.loadPage('protocol');
+    app.navigate('protocol');
   } catch (error) {
     app.log('Failed to start capture: ' + error.message, 'error');
   }
@@ -1878,7 +1878,7 @@ async function stopForensicsCapture() {
   try {
     await api.toggleForensicsCapture('stop');
     app.log('Forensics capture stopped', 'warning');
-    app.loadPage('protocol');
+    app.navigate('protocol');
   } catch (error) {
     app.log('Failed to stop capture: ' + error.message, 'error');
   }
