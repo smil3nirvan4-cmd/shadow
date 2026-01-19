@@ -17,7 +17,7 @@ import {
 import { Config } from '../../core/config.js';
 import { EventBus } from '../../core/event-bus.js';
 import { Logger } from '../../core/logger.js';
-import { Result, ok, fail, AIProviderError } from '../../core/errors.js';
+import { Result, ok, fail, AIProviderError, DomainError } from '../../core/errors.js';
 
 // ============================================
 // Cache Entry
@@ -124,7 +124,7 @@ export class AIService {
         request: AIRequest,
         maxRetries = 3
     ): Promise<Result<AIResponse>> {
-        let lastError: AIProviderError | null = null;
+        let lastError: DomainError | null = null;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const result = await this.generateResponse(request);

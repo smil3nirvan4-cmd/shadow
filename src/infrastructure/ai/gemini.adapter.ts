@@ -39,8 +39,8 @@ export class GeminiAdapter implements AIProvider {
             // Build contents array
             const contents = this.buildContents(request);
 
-            // Generate
-            const result = await this.genModel.generateContent({
+            // Generate with timeout
+            const generatePromise = this.genModel.generateContent({
                 contents,
                 generationConfig: {
                     temperature: request.temperature,
@@ -52,6 +52,13 @@ export class GeminiAdapter implements AIProvider {
                     parts: [{ text: request.systemPrompt }],
                 } : undefined,
             });
+
+            // Timeout promise (15 seconds)
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error('GenerativeAI Timeout (15s)')), 15000);
+            });
+
+            const result = await Promise.race([generatePromise, timeoutPromise]);
 
             const response = result.response;
             const text = response.text();

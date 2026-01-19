@@ -49,61 +49,41 @@ class APIClient {
   }
 
   getMockData(endpoint) {
-    // Mock data for demonstration
-    const mocks = {
+    // EMPTY FALLBACK DATA - Only shows real data from API
+    // Returns empty structures so UI remains functional but without fake data
+    const emptyFallbacks = {
       '/analytics/dashboard': {
-        overview: { totalMessages: 8452, totalContacts: 1205, totalCalls: 320, uptime: 34545 },
-        systemHealth: { whatsapp: 'connected', aiProvider: 'ready', storage: 'healthy', database: 'optimized' },
-        recentActivity: [
-          { type: 'message', text: 'Initializing JARVIS ULTIMATE...', time: Date.now() - 60000 },
-          { type: 'success', text: 'System status: HEALTHY', time: Date.now() - 30000 },
-          { type: 'info', text: 'Forensics module active', time: Date.now() - 10000 },
-        ]
+        overview: { totalMessages: 0, totalContacts: 0, totalCalls: 0, uptime: 0 },
+        systemHealth: { whatsapp: 'unknown', aiProvider: 'unknown', storage: 'unknown', database: 'unknown' },
+        recentActivity: []
       },
-      '/analytics/predictions': [
-        { contactId: 'Contact A', probability: 87, confidence: 'high', reason: 'High engagement pattern' },
-        { contactId: 'Contact B', probability: 72, confidence: 'medium', reason: 'Regular response times' },
-        { contactId: 'Contact C', probability: 65, confidence: 'medium', reason: 'Recent activity spike' },
-      ],
-      '/analytics/ghosting': [
-        { contactId: 'Contact X', score: 78, daysSinceContact: 5, trend: 'worsening' },
-        { contactId: 'Contact Y', score: 62, daysSinceContact: 3, trend: 'stable' },
-      ],
-      '/analytics/engagement': [
-        { contactId: 'Contact A', score: 95, msgs: 75 },
-        { contactId: 'Contact B', score: 88, msgs: 60 },
-        { contactId: 'Contact C', score: 72, msgs: 40 },
-      ],
+      '/analytics/predictions': [],
+      '/analytics/ghosting': [],
+      '/analytics/engagement': [],
       '/godmode/status': {
         config: {
-          ghostMode: true,
-          viewOnceBypass: true,
-          antiDelete: true,
-          ackSpy: true,
-          presenceSpy: true,
+          ghostMode: false,
+          viewOnceBypass: false,
+          antiDelete: false,
+          ackSpy: false,
+          presenceSpy: false,
           reactionSpy: false,
           autoRejectCalls: false,
           locationSpoofing: false,
         },
-        stats: { deletedMessages: 47, viewOnceMedia: 23, stalkTargets: 3, ackLogs: 1892 }
+        stats: { deletedMessages: 0, viewOnceMedia: 0, stalkTargets: 0, ackLogs: 0 }
       },
       '/godmode/deleted': [],
       '/godmode/viewonce': [],
-      '/forensics/timeline': [
-        { time: 'TODAY, 09:14 AM', type: 'received', text: '"Hey, are you free later?"' },
-        { time: 'TODAY, 09:16 AM', type: 'status', text: 'Status Viewed: "Busy working..."' },
-        { time: 'TODAY, 09:17 AM', type: 'deleted', text: '"Nevermind, forgot."', recovered: true },
-        { time: 'TODAY, 06:45 PM', type: 'call', text: 'Incoming Call (Missed)' },
-        { time: 'YESTERDAY, 06:48 PM', type: 'sent', text: '"Sorry, missed your call. What\'s up?"' },
-      ],
+      '/forensics/timeline': [],
     };
 
-    for (const [key, value] of Object.entries(mocks)) {
+    for (const [key, value] of Object.entries(emptyFallbacks)) {
       if (endpoint.includes(key.replace('/analytics', '').replace('/godmode', '').replace('/forensics', ''))) {
         return value;
       }
     }
-    return mocks['/analytics/dashboard'];
+    return emptyFallbacks['/analytics/dashboard'];
   }
 
   async getDashboard() { return this.request('/analytics/dashboard'); }
@@ -124,6 +104,13 @@ class APIClient {
   async disconnectWhatsApp() { return this.request('/whatsapp/disconnect', { method: 'POST' }); }
   async getContacts() { return this.request('/contacts'); }
   async getChats() { return this.request('/chats'); }
+  async getChatMessages(chatId, limit = 50) { return this.request(`/chats/${encodeURIComponent(chatId)}/messages?limit=${limit}`); }
+  async sendMessage(chatId, message) {
+    return this.request('/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({ chatId, message })
+    });
+  }
 
   // Forensics APIs
   async getForensicsOverview() { return this.request('/forensics/overview'); }
@@ -220,8 +207,8 @@ function renderHeatmap() {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
-  // Generate random heatmap data
-  const generateLevel = () => Math.floor(Math.random() * 6);
+  // No random data - show empty cells until real data is available
+  const generateLevel = () => 0;
 
   return `
     <div class="heatmap">
@@ -325,10 +312,10 @@ const pages = {
   // Overview - All Features (Like Reference Image 1)
   async overview() {
     const [dashboard, godmode, predictions, engagement] = await Promise.all([
-      api.getDashboard(),
-      api.getGodModeStatus(),
-      api.getPredictions(),
-      api.getEngagementRanking(),
+      (await api.getDashboard()) || {},
+      (await api.getGodModeStatus()) || {},
+      (await api.getPredictions()) || [],
+      (await api.getEngagementRanking()) || [],
     ]);
 
     const config = godmode.config || {};
@@ -398,7 +385,7 @@ const pages = {
 
   // Dashboard
   async dashboard() {
-    const dashboard = await api.getDashboard();
+    const dashboard = (await api.getDashboard()) || {};
     const overview = dashboard.overview || {};
 
     return `
@@ -445,8 +432,8 @@ const pages = {
 
   // Forensics (Like Reference Image 3)
   async forensics() {
-    const godmode = await api.getGodModeStatus();
-    const timeline = await api.getContactTimeline();
+    const godmode = (await api.getGodModeStatus()) || {};
+    const timeline = (await api.getContactTimeline()) || [];
     const config = godmode.config || {};
 
     return `
@@ -488,9 +475,9 @@ const pages = {
   // Analytics (Like Reference Image 2)
   async analytics() {
     const [predictions, ghosting, engagement] = await Promise.all([
-      api.getPredictions(),
-      api.getGhostingAlerts(),
-      api.getEngagementRanking(),
+      (await api.getPredictions()) || [],
+      (await api.getGhostingAlerts()) || [],
+      (await api.getEngagementRanking()) || [],
     ]);
 
     return `
@@ -518,7 +505,7 @@ const pages = {
 
   // God Mode (Full Config with Tutorials)
   async godmode() {
-    const godmode = await api.getGodModeStatus();
+    const godmode = (await api.getGodModeStatus()) || {};
     const config = godmode.config || {};
     const stats = godmode.stats || {};
 
@@ -671,9 +658,9 @@ const pages = {
 
   // Behavioral Analytics Page
   async behavioral() {
-    const predictions = await api.getPredictions();
-    const ghosting = await api.getGhostingAlerts();
-    const engagement = await api.getEngagementRanking();
+    const predictions = (await api.getPredictions()) || [];
+    const ghosting = (await api.getGhostingAlerts()) || [];
+    const engagement = (await api.getEngagementRanking()) || [];
 
     const behaviorModules = [
       {
@@ -987,19 +974,18 @@ const pages = {
   async medialab() {
     const viewonce = await api.getViewOnceSaved();
 
-    // Mock media items for demo
-    const mediaItems = [
-      { id: 1, name: 'Bypassed-IMG_20240505.jpg', time: '09:14:38', type: 'image', badge: 'BYPASSED' },
-      { id: 2, name: 'Bypassed-VID_20240519.mp4', time: '14:12:38', type: 'video', badge: 'BYPASSED' },
-      { id: 3, name: 'Bypassed-IMG_20240570.jpg', time: '07:20:18', type: 'image', badge: 'BYPASSED' },
-      { id: 4, name: 'Bypassed-IMG_20240503.png', time: '05:14:05', type: 'image', badge: 'BYPASSED' },
-      { id: 5, name: 'Bypassed-VID_20240531.mp4', time: '19:32:12', type: 'video', badge: 'BYPASSED' },
-      { id: 6, name: 'Bypassed-IMG_20240518.jpg', time: '10:12:22', type: 'image', badge: 'BYPASSED' },
-      { id: 7, name: 'Bypassed-IMG_20240518.jpg', time: '16:18:05', type: 'image', badge: 'BYPASSED' },
-      { id: 8, name: 'Bypassed-IMG_20245018.jpg', time: '12:16:59', type: 'image', badge: 'BYPASSED' },
-    ];
+    // Use real data from API - no fake/mock items
+    const mediaItems = Array.isArray(viewonce) ? viewonce.map((item, index) => ({
+      id: item.id || index + 1,
+      name: item.filename || item.name || `media_${index + 1}`,
+      time: item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '--:--:--',
+      type: item.mimetype?.includes('video') ? 'video' : 'image',
+      badge: 'BYPASSED',
+      metadata: item.metadata || null
+    })) : [];
 
-    const selectedMedia = mediaItems[0];
+    const hasMedia = mediaItems.length > 0;
+    const selectedMedia = hasMedia ? mediaItems[0] : null;
 
     return `
       <div class="page">
@@ -1037,7 +1023,7 @@ const pages = {
         <div class="media-layout">
           <!-- Media Grid -->
           <div class="media-grid">
-            ${mediaItems.map((m, i) => `
+            ${hasMedia ? mediaItems.map((m, i) => `
               <div class="media-item ${i === 0 ? 'selected' : ''}" onclick="selectMedia(${m.id})">
                 <div class="media-item__placeholder">${m.type === 'video' ? '🎬' : '🖼️'}</div>
                 <span class="media-item__badge">${m.badge}</span>
@@ -1045,37 +1031,49 @@ const pages = {
                   <div class="media-item__time">${m.time}</div>
                 </div>
               </div>
-            `).join('')}
+            `).join('') : `
+              <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 48px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">📷</div>
+                <p class="text-muted">Nenhuma mídia ViewOnce capturada ainda.</p>
+                <p class="text-muted text-xs">Mídias de visualização única aparecerão aqui quando forem interceptadas.</p>
+              </div>
+            `}
           </div>
 
           <!-- Metadata Panel -->
           <div class="metadata-panel">
             <div class="metadata-panel__title">📋 Media Metadata</div>
+            ${selectedMedia ? `
             <div class="metadata-panel__row">
               <span class="metadata-panel__label">File Name</span>
               <span class="metadata-panel__value">${selectedMedia.name}</span>
             </div>
             <div class="metadata-panel__row">
               <span class="metadata-panel__label">Date Extracted</span>
-              <span class="metadata-panel__value">2024-08-20 14:53:10 UTC</span>
+              <span class="metadata-panel__value">${selectedMedia.metadata?.extractedAt || 'N/A'}</span>
             </div>
             <div class="metadata-panel__row">
               <span class="metadata-panel__label">EXIF Data</span>
-              <span class="metadata-panel__value">Camera Maker: Apple<br>Model: iPhone 14 Pro<br>Exposure: 1/120s, ISO-100</span>
+              <span class="metadata-panel__value">${selectedMedia.metadata?.exif || 'N/A'}</span>
             </div>
             <div class="metadata-panel__row">
               <span class="metadata-panel__label">GPS Location</span>
-              <span class="metadata-panel__value">37.04° N, 14° W<br>Los Angeles, CA</span>
+              <span class="metadata-panel__value">${selectedMedia.metadata?.gps || 'N/A'}</span>
             </div>
             <div class="metadata-panel__row">
               <span class="metadata-panel__label">Device Source</span>
-              <span class="metadata-panel__value">iOS 17.4 (Target Device ID: 8AAF-8122-C083)</span>
+              <span class="metadata-panel__value">${selectedMedia.metadata?.device || 'N/A'}</span>
             </div>
             <div class="metadata-panel__row">
               <span class="metadata-panel__label">Original Dimensions</span>
-              <span class="metadata-panel__value">4032 x 3024</span>
+              <span class="metadata-panel__value">${selectedMedia.metadata?.dimensions || 'N/A'}</span>
             </div>
             <button class="btn btn--secondary mt-md" style="width: 100%;">📥 Download Report</button>
+            ` : `
+            <div class="empty-state" style="text-align: center; padding: 32px;">
+              <p class="text-muted">Selecione uma mídia para ver metadados.</p>
+            </div>
+            `}
           </div>
         </div>
       </div>
@@ -1084,8 +1082,10 @@ const pages = {
 
   // Settings & Health (Based on Reference Image 2)
   async settings() {
-    const cpuUsage = 38;
-    const memoryUsage = 62;
+    // Fetch real system metrics from API
+    const systemStatus = await api.getSystemStatus().catch(() => ({ cpu: 0, memory: 0 }));
+    const cpuUsage = systemStatus.cpu || 0;
+    const memoryUsage = systemStatus.memory || 0;
 
     // Generate gauge SVG
     const createGauge = (value, type, label) => {
@@ -1106,8 +1106,8 @@ const pages = {
       `;
     };
 
-    // Generate mini chart
-    const miniChart = Array.from({ length: 20 }, () => Math.floor(Math.random() * 30) + 10)
+    // Mini chart - no random data, show empty bars until real data is available
+    const miniChart = Array.from({ length: 20 }, () => 0)
       .map(h => `<div class="mini-chart__bar" style="height: ${h}px;"></div>`).join('');
 
     return `
@@ -1652,6 +1652,249 @@ const pages = {
       </div>
     `;
   },
+
+  // Messages - Chat Interface with Real API
+  async messages() {
+    const status = await api.getWhatsAppStatus().catch(() => ({ connected: false }));
+    const chats = status.connected ? await api.getChats().catch(() => []) : [];
+
+    // Store globally for message functions
+    window.currentChats = chats;
+    window.selectedChatId = null;
+    window.selectedChatMessages = [];
+
+    return `
+      <div class="page">
+        <div class="page__header">
+          <h1 class="page__title">💬 Mensagens</h1>
+          <p class="page__subtitle">Gerenciamento de conversas do WhatsApp</p>
+        </div>
+
+        ${!status.connected ? `
+          <div class="card">
+            <div class="card__content" style="text-align: center; padding: 48px;">
+              <div style="font-size: 64px; margin-bottom: 16px;">📵</div>
+              <h3 style="margin-bottom: 8px;">WhatsApp Desconectado</h3>
+              <p class="text-muted mb-lg">Conecte o WhatsApp para ver suas conversas</p>
+              <button class="btn btn--primary" onclick="app.navigate('whatsapp')">
+                🔗 Ir para Conexão WhatsApp
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="messages-layout">
+            <!-- Chat List -->
+            <div class="chat-list-container">
+              <div class="card" style="height: 100%;">
+                <div class="card__header">
+                  <h3 class="card__title">📋 Conversas (${chats.length})</h3>
+                  <button class="btn btn--secondary" onclick="refreshChats()" style="font-size: 12px;">🔄</button>
+                </div>
+                <div class="card__content chat-list" style="max-height: 500px; overflow-y: auto;">
+                  ${chats.length > 0 ? chats.slice(0, 50).map(chat => `
+                    <div class="chat-item ${window.selectedChatId === chat.id ? 'active' : ''}" 
+                         onclick="selectChat('${chat.id}')" 
+                         data-chat-id="${chat.id}">
+                      <div class="chat-item__avatar">${chat.isGroup ? '👥' : '👤'}</div>
+                      <div class="chat-item__info">
+                        <div class="chat-item__name">${chat.name || 'Unknown'}</div>
+                        <div class="chat-item__preview text-muted text-xs">
+                          ${chat.unreadCount > 0 ? `<span class="badge badge--primary">${chat.unreadCount}</span>` : ''}
+                          Clique para ver mensagens
+                        </div>
+                      </div>
+                    </div>
+                  `).join('') : `
+                    <div class="empty-state" style="text-align: center; padding: 32px;">
+                      <div style="font-size: 32px; margin-bottom: 8px;">📭</div>
+                      <p class="text-muted">Nenhuma conversa encontrada</p>
+                    </div>
+                  `}
+                </div>
+              </div>
+            </div>
+
+            <!-- Message View -->
+            <div class="message-view-container">
+              <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+                <div class="card__header" id="message-header">
+                  <h3 class="card__title">💬 Selecione uma conversa</h3>
+                </div>
+                <div class="card__content message-list" id="message-list" style="flex: 1; overflow-y: auto; max-height: 400px;">
+                  <div class="empty-state" style="text-align: center; padding: 48px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">👈</div>
+                    <p class="text-muted">Selecione uma conversa para ver as mensagens</p>
+                  </div>
+                </div>
+                <div class="message-composer" id="message-composer" style="display: none;">
+                  <div style="display: flex; gap: 8px; padding: 16px; border-top: 1px solid var(--border-color);">
+                    <input type="text" id="message-input" class="form-input" 
+                           placeholder="Digite sua mensagem..." 
+                           style="flex: 1;"
+                           onkeypress="if(event.key === 'Enter') sendMessageFromUI()">
+                    <button class="btn btn--primary" onclick="sendMessageFromUI()">
+                      📤 Enviar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `}
+      </div>
+
+      <style>
+        .messages-layout {
+          display: grid;
+          grid-template-columns: 350px 1fr;
+          gap: 16px;
+          min-height: 600px;
+        }
+        .chat-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          border-radius: var(--radius-md);
+          cursor: pointer;
+          transition: background 0.2s;
+          border-bottom: 1px solid var(--border-color);
+        }
+        .chat-item:hover, .chat-item.active {
+          background: var(--bg-tertiary);
+        }
+        .chat-item__avatar {
+          width: 40px;
+          height: 40px;
+          background: var(--accent-primary);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+        }
+        .chat-item__name {
+          font-weight: 600;
+          margin-bottom: 2px;
+        }
+        .message-bubble {
+          max-width: 70%;
+          padding: 10px 14px;
+          border-radius: 16px;
+          margin-bottom: 8px;
+        }
+        .message-bubble.sent {
+          background: var(--accent-primary);
+          color: white;
+          margin-left: auto;
+          border-bottom-right-radius: 4px;
+        }
+        .message-bubble.received {
+          background: var(--bg-tertiary);
+          margin-right: auto;
+          border-bottom-left-radius: 4px;
+        }
+        .message-time {
+          font-size: 10px;
+          opacity: 0.7;
+          margin-top: 4px;
+        }
+        @media (max-width: 768px) {
+          .messages-layout { grid-template-columns: 1fr; }
+        }
+      </style>
+    `;
+  },
+
+  // Contacts - Real Contacts List
+  async contacts() {
+    const status = await api.getWhatsAppStatus().catch(() => ({ connected: false }));
+    const contacts = status.connected ? await api.getContacts().catch(() => []) : [];
+
+    return `
+      <div class="page">
+        <div class="page__header">
+          <h1 class="page__title">👥 Contatos</h1>
+          <p class="page__subtitle">Lista de contatos do WhatsApp (${contacts.length || 0})</p>
+        </div>
+
+        ${!status.connected ? `
+          <div class="card">
+            <div class="card__content" style="text-align: center; padding: 48px;">
+              <div style="font-size: 64px; margin-bottom: 16px;">📵</div>
+              <h3 style="margin-bottom: 8px;">WhatsApp Desconectado</h3>
+              <p class="text-muted mb-lg">Conecte o WhatsApp para ver seus contatos</p>
+              <button class="btn btn--primary" onclick="app.navigate('whatsapp')">
+                🔗 Ir para Conexão WhatsApp
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">📋 Lista de Contatos</h3>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="contact-search" class="form-input" 
+                       placeholder="Buscar contato..." style="width: 200px;"
+                       oninput="filterContacts(this.value)">
+                <button class="btn btn--secondary" onclick="app.navigate('contacts')">🔄</button>
+              </div>
+            </div>
+            <div class="card__content">
+              <div class="contacts-grid" id="contacts-grid">
+                ${contacts.length > 0 ? contacts.map(contact => `
+                  <div class="contact-card" data-name="${(contact.name || '').toLowerCase()}">
+                    <div class="contact-card__avatar">👤</div>
+                    <div class="contact-card__info">
+                      <div class="contact-card__name">${contact.name || 'Unknown'}</div>
+                      <div class="contact-card__id text-muted text-xs">${contact.id?.split('@')[0] || ''}</div>
+                    </div>
+                    <button class="btn btn--primary btn--sm" onclick="startChatWith('${contact.id}')">
+                      💬
+                    </button>
+                  </div>
+                `).join('') : `
+                  <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 48px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                    <p class="text-muted">Nenhum contato encontrado</p>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        `}
+      </div>
+
+      <style>
+        .contacts-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 12px;
+        }
+        .contact-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: var(--bg-tertiary);
+          border-radius: var(--radius-md);
+          border: 1px solid var(--border-color);
+        }
+        .contact-card__avatar {
+          width: 40px;
+          height: 40px;
+          background: var(--accent-secondary);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+        }
+        .contact-card__info { flex: 1; }
+        .contact-card__name { font-weight: 600; }
+      </style>
+    `;
+  },
 };
 
 // =============================================
@@ -1895,6 +2138,139 @@ async function stopForensicsCapture() {
   } catch (error) {
     app.log('Failed to stop capture: ' + error.message, 'error');
   }
+}
+
+// =============================================
+// Message Handling Functions
+// =============================================
+
+// Select a chat and load its messages
+async function selectChat(chatId) {
+  window.selectedChatId = chatId;
+
+  // Update UI - highlight selected chat
+  document.querySelectorAll('.chat-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.chatId === chatId);
+  });
+
+  // Find chat name
+  const chat = window.currentChats?.find(c => c.id === chatId);
+  const chatName = chat?.name || 'Chat';
+
+  // Update header
+  const header = document.getElementById('message-header');
+  if (header) {
+    header.innerHTML = `<h3 class="card__title">💬 ${chatName}</h3>`;
+  }
+
+  // Show loading
+  const messageList = document.getElementById('message-list');
+  if (messageList) {
+    messageList.innerHTML = '<div style="text-align: center; padding: 32px;"><div class="spinner"></div><p class="text-muted">Carregando mensagens...</p></div>';
+  }
+
+  // Fetch messages
+  try {
+    const messages = await api.getChatMessages(chatId, 50);
+    window.selectedChatMessages = messages || [];
+
+    // Render messages
+    if (messageList) {
+      if (messages && messages.length > 0) {
+        messageList.innerHTML = messages.map(msg => `
+          <div class="message-bubble ${msg.fromMe ? 'sent' : 'received'}">
+            <div class="message-body">${msg.body || '[Media]'}</div>
+            <div class="message-time">${msg.timestamp ? new Date(msg.timestamp * 1000).toLocaleTimeString() : ''}</div>
+          </div>
+        `).join('');
+        messageList.scrollTop = messageList.scrollHeight;
+      } else {
+        messageList.innerHTML = '<div class="empty-state" style="text-align: center; padding: 48px;"><p class="text-muted">Nenhuma mensagem nesta conversa</p></div>';
+      }
+    }
+
+    // Show composer
+    const composer = document.getElementById('message-composer');
+    if (composer) {
+      composer.style.display = 'block';
+    }
+
+    app.log(`Chat loaded: ${chatName}`, 'info');
+  } catch (error) {
+    if (messageList) {
+      messageList.innerHTML = `<div class="empty-state" style="text-align: center; padding: 48px;"><p class="text-danger">Erro ao carregar mensagens: ${error.message}</p></div>`;
+    }
+    app.log('Failed to load messages: ' + error.message, 'error');
+  }
+}
+
+// Send message from UI
+async function sendMessageFromUI() {
+  const input = document.getElementById('message-input');
+  const message = input?.value?.trim();
+
+  if (!message || !window.selectedChatId) {
+    app.log('Digite uma mensagem para enviar', 'warning');
+    return;
+  }
+
+  try {
+    input.disabled = true;
+    app.log(`Enviando mensagem para ${window.selectedChatId}...`, 'info');
+
+    const result = await api.sendMessage(window.selectedChatId, message);
+
+    if (result?.sent) {
+      // Clear input
+      input.value = '';
+
+      // Add message to UI immediately
+      const messageList = document.getElementById('message-list');
+      if (messageList) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message-bubble sent';
+        msgDiv.innerHTML = `
+          <div class="message-body">${message}</div>
+          <div class="message-time">${new Date().toLocaleTimeString()}</div>
+        `;
+        messageList.appendChild(msgDiv);
+        messageList.scrollTop = messageList.scrollHeight;
+      }
+
+      app.log('Mensagem enviada com sucesso!', 'success');
+    } else {
+      throw new Error('Falha ao enviar mensagem');
+    }
+  } catch (error) {
+    app.log('Erro ao enviar: ' + error.message, 'error');
+  } finally {
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+// Refresh chats list
+function refreshChats() {
+  app.navigate('messages');
+}
+
+// Filter contacts by name
+function filterContacts(query) {
+  const cards = document.querySelectorAll('.contact-card');
+  const lowerQuery = query.toLowerCase();
+
+  cards.forEach(card => {
+    const name = card.dataset.name || '';
+    card.style.display = name.includes(lowerQuery) ? 'flex' : 'none';
+  });
+}
+
+// Start chat with a contact
+function startChatWith(contactId) {
+  window.selectedChatId = contactId;
+  app.navigate('messages');
+  // After navigation, try to select the chat
+  setTimeout(() => selectChat(contactId), 500);
 }
 
 // Initialize
