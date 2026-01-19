@@ -126,6 +126,17 @@ export async function bootstrap(
         logger.warn({ error }, 'Failed to initialize domain services');
     }
 
+    // Register WhatsApp client as singleton
+    try {
+        const { WhatsAppClient } = await import('../infrastructure/whatsapp/client.js');
+        const whatsappClient = new WhatsAppClient(config, eventBus, logger);
+        container.registerInstance(WhatsAppClient, whatsappClient);
+        container.registerInstance('WhatsAppClient', whatsappClient);
+        logger.info('WhatsApp client registered as singleton');
+    } catch (error) {
+        logger.warn({ error }, 'Failed to register WhatsApp client');
+    }
+
     // Mark as bootstrapped
     isBootstrapped = true;
 
