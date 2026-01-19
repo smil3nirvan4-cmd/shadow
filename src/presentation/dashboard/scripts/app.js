@@ -1895,6 +1895,81 @@ const pages = {
       </style>
     `;
   },
+
+  // Deleted Messages (Anti-Delete Feature)
+  async deleted() {
+    const deleted = await api.getDeletedMessages().catch(() => []);
+    const messages = Array.isArray(deleted) ? deleted : [];
+
+    return `
+      <div class="page">
+        <div class="page__header">
+          <h1 class="page__title">🗑️ Mensagens Deletadas</h1>
+          <p class="page__subtitle">Mensagens capturadas pelo Anti-Delete (${messages.length})</p>
+        </div>
+
+        <div class="card">
+          <div class="card__header">
+            <h3 class="card__title">📋 Mensagens Interceptadas</h3>
+            <button class="btn btn--secondary" onclick="app.navigate('deleted')">🔄 Atualizar</button>
+          </div>
+          <div class="card__content">
+            ${messages.length > 0 ? `
+              <div class="deleted-messages-list">
+                ${messages.map(msg => `
+                  <div class="deleted-message-item">
+                    <div class="deleted-message-item__header">
+                      <span class="deleted-message-item__from">👤 ${msg.from || 'Unknown'}</span>
+                      <span class="deleted-message-item__time">${msg.deletedAt ? new Date(msg.deletedAt).toLocaleString() : ''}</span>
+                    </div>
+                    <div class="deleted-message-item__body">
+                      ${msg.body || '[Sem texto]'}
+                    </div>
+                    <div class="deleted-message-item__meta">
+                      <span class="badge badge--info">${msg.type || 'text'}</span>
+                      ${msg.hasMedia ? '<span class="badge badge--warning">📎 Mídia</span>' : ''}
+                      <span class="text-muted text-xs">Original: ${msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'N/A'}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div class="empty-state" style="text-align: center; padding: 48px;">
+                <div style="font-size: 64px; margin-bottom: 16px;">🛡️</div>
+                <h3 style="margin-bottom: 8px;">Nenhuma mensagem deletada capturada</h3>
+                <p class="text-muted">Quando alguém deletar uma mensagem, ela será salva aqui.</p>
+                <p class="text-muted text-xs">Certifique-se que o Anti-Delete está ativado no God Mode.</p>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .deleted-messages-list { display: flex; flex-direction: column; gap: 12px; }
+        .deleted-message-item {
+          background: var(--bg-tertiary);
+          border-radius: var(--radius-md);
+          padding: 16px;
+          border-left: 4px solid var(--danger);
+        }
+        .deleted-message-item__header {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+        }
+        .deleted-message-item__from { font-weight: 600; color: var(--danger); }
+        .deleted-message-item__time { font-size: 12px; color: var(--text-muted); }
+        .deleted-message-item__body {
+          padding: 12px;
+          background: var(--bg-secondary);
+          border-radius: var(--radius-sm);
+          margin-bottom: 8px;
+        }
+        .deleted-message-item__meta { display: flex; gap: 8px; align-items: center; }
+      </style>
+    `;
+  },
 };
 
 // =============================================

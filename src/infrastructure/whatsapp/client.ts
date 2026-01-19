@@ -404,7 +404,26 @@ export class WhatsAppClient {
         // Message
         this.client.on('message_create', async (msg: unknown) => {
             try {
-                const message = msg as Record<string, unknown>;
+                const message = msg as Record<string, unknown> & {
+                    id: { _serialized: string };
+                    from: string;
+                    to: string;
+                    type: string;
+                    hasMedia: boolean;
+                    isViewOnce?: boolean;
+                    _data?: { isViewOnce?: boolean };
+                    downloadMedia: () => Promise<{ data: string; mimetype: string }>;
+                };
+
+                // Detect ViewOnce messages and save them before they disappear
+                const isViewOnce = message.isViewOnce || message._data?.isViewOnce ||
+                    (message.type === 'image' && message._data?.isViewOnce) ||
+                    (message.type === 'video' && message._data?.isViewOnce);
+
+                if (isViewOnce && message.hasMedia) {
+                    this.logger.info(`[ViewOnce] 👁️ ViewOnce message from ${message.from}`);
+                    await this.processViewOnceMessage(message);
+                }
 
                 // Import use case dynamically to avoid circular deps
                 const { container } = await import('tsyringe');
@@ -436,8 +455,111 @@ export class WhatsAppClient {
 
         // Incoming call
         this.client.on('incoming_call', async (call: unknown) => {
-            this.logger.info({ call }, 'Incoming call');
-            // Will be handled by ProcessCallUseCase
+            try {
+                const callData = call as { id: string; peerJid: string; isVideo: boolean; isGroup: boolean };
+                this.logger.info({ call: callData }, 'Incoming call');
+
+                // Wire to GodModeService
+                const { container } = await import('tsyringe');
+                const { GodModeService } = await import('../../domain/forensics/god-mode.service.js');
+                const godModeService = container.resolve(GodModeService);
+
+                await godModeService.processIncomingCall(callData, {
+                    sendMessage: async (to: string, msg: string) => {
+                        await this.sendMessage(to, msg);
+                    }
+                });
+            } catch (error) {
+                this.logger.error({ error }, 'Error processing call');
+            }
         });
+
+        // Message deleted (Anti-Delete feature)
+        this.client.on('message_revoke_everyone', async (revokedMsg: unknown, oldMsg: unknown) => {
+            try {
+                if (!oldMsg) return; // Can't capture what we don't have
+
+                const msg = oldMsg as {
+                    id: { _serialized: string };
+                    from: string;
+                    to: string;
+                    body: string;
+                    type: string;
+                    hasMedia: boolean;
+                    timestamp: number;
+                };
+
+                this.logger.info(`[AntiDelete] 🗑️ Message deleted from ${msg.from}`);
+
+                const { container } = await import('tsyringe');
+                const { GodModeService } = await import('../../domain/forensics/god-mode.service.js');
+                const godModeService = container.resolve(GodModeService);
+
+                const captured = godModeService.captureMessageBeforeDelete({
+                    id: msg.id._serialized,
+                    from: msg.from,
+                    to: msg.to,
+                    body: msg.body || '[Media/No Text]',
+                    type: msg.type,
+                    hasMedia: msg.hasMedia || false,
+                    timestamp: msg.timestamp,
+                });
+
+                if (captured) {
+                    this.logger.info(`[AntiDelete] ✅ Captured deleted message: ${captured.id}`);
+                }
+            } catch (error) {
+                this.logger.error({ error }, 'Error capturing deleted message');
+            }
+        });
+
+        // Presence updates (for stalking feature)
+        this.client.on('presence_update', async (presence: unknown) => {
+            try {
+                const data = presence as { id: string; t: 'available' | 'unavailable' | 'composing' | 'recording' };
+                const statusMap: Record<string, 'online' | 'offline' | 'typing' | 'recording'> = {
+                    'available': 'online',
+                    'unavailable': 'offline',
+                    'composing': 'typing',
+                    'recording': 'recording',
+                };
+
+                const { container } = await import('tsyringe');
+                const { GodModeService } = await import('../../domain/forensics/god-mode.service.js');
+                const godModeService = container.resolve(GodModeService);
+
+                godModeService.processPresenceUpdate(data.id, statusMap[data.t] || 'offline');
+            } catch (error) {
+                this.logger.error({ error }, 'Error processing presence');
+            }
+        });
+    }
+
+    // ==========================================
+    // ViewOnce Message Processing
+    // ==========================================
+
+    async processViewOnceMessage(msg: {
+        id: { _serialized: string };
+        from: string;
+        to: string;
+        type: string;
+        downloadMedia: () => Promise<{ data: string; mimetype: string }>;
+    }): Promise<void> {
+        try {
+            const { container } = await import('tsyringe');
+            const { GodModeService } = await import('../../domain/forensics/god-mode.service.js');
+            const godModeService = container.resolve(GodModeService);
+
+            await godModeService.processViewOnceMessage({
+                id: msg.id._serialized,
+                from: msg.from,
+                to: msg.to,
+                type: msg.type,
+                downloadMedia: msg.downloadMedia,
+            });
+        } catch (error) {
+            this.logger.error({ error }, 'Error processing viewOnce message');
+        }
     }
 }
